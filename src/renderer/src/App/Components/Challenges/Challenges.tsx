@@ -14,6 +14,8 @@ import ChallengesHeader from './Header/Header'
 import { ModalWrapper } from '../Modals/Wrapper'
 import { $$, sanitizedChallengeData } from '../Language/StringReplacer'
 import { getChosenLanguage } from '../../../Services/auth.service'
+import ChallengeList from '../ChallengeList/ChallengeList'
+import CustomTagFilters from './CustomTagFilters'
 
 export default function Challenges({ onLogout }) {
   const [challenges, setChallenges] = useState<Array<any>>([])
@@ -36,7 +38,6 @@ export default function Challenges({ onLogout }) {
   const [showOnlyPinned, setShowOnlyPinned] = useState(false)
   const [language, setLanguage] = useState(getChosenLanguage)
   const [loadingModalVisible, setLoadingModalVisible] = useState(false)
-  
 
   useEffect(() => {
     fetchData()
@@ -69,31 +70,48 @@ export default function Challenges({ onLogout }) {
           challenge.challenge?.tags.length > 0
       )
 
-      let totalIP: number =  0;
-      let ipAcquired: number =  0;
+      let totalIP: number = 0
+      let ipAcquired: number = 0
 
-      const translatedNamesArray: any[] = [];
-      console.log("filteredChallenges:",filteredChallenges)
-      filteredChallenges.forEach(ch => {
-        if(ch.challenge.reward?.stats?.[0]?.statCode === 'infamy-point'){
-          totalIP += ch.challenge.reward.stats[0].value;
-          if (ch.status === "COMPLETED" || ch.progress.objective.stats[0].currentValue >= ch.progress.objective.stats[0].targetValue) ipAcquired += ch.challenge.reward.stats[0].value;
+      const translatedNamesArray: any[] = []
+      console.log('filteredChallenges:', filteredChallenges)
+      filteredChallenges.forEach((ch) => {
+        if (ch.challenge.reward?.stats?.[0]?.statCode === 'infamy-point') {
+          totalIP += ch.challenge.reward.stats[0].value
+          if (
+            ch.status === 'COMPLETED' ||
+            ch.progress.objective.stats[0].currentValue >=
+              ch.progress.objective.stats[0].targetValue
+          )
+            ipAcquired += ch.challenge.reward.stats[0].value
         }
 
-        const sanitizedChallengeData: sanitizedChallengeData = $$(ch.challenge.challengeId, language)
-        const name = sanitizedChallengeData.internalName !== '' && sanitizedChallengeData.title !== 'undefined'
+        const sanitizedChallengeData: sanitizedChallengeData = $$(
+          ch.challenge.challengeId,
+          language
+        )
+        const name =
+          sanitizedChallengeData.internalName !== '' && sanitizedChallengeData.title !== 'undefined'
             ? sanitizedChallengeData.title
             : ch.challenge.name
 
-        ch.challenge.name = name;
-        ch.userProgressionPerc = ch.progress.objective.stats[0].currentValue / ch.progress.objective.stats[0].targetValue * 100;
-        if((ch.progress.objective.stats[0].currentValue >= ch.progress.objective.stats[0].targetValue) && ch.status !== "COMPLETED") ch.status = "BUGGED";
+        ch.challenge.name = name
+        ch.userProgressionPerc =
+          (ch.progress.objective.stats[0].currentValue /
+            ch.progress.objective.stats[0].targetValue) *
+          100
+        if (
+          ch.progress.objective.stats[0].currentValue >=
+            ch.progress.objective.stats[0].targetValue &&
+          ch.status !== 'COMPLETED'
+        )
+          ch.status = 'BUGGED'
 
-        translatedNamesArray.push(ch);
-      });
+        translatedNamesArray.push(ch)
+      })
 
-      const translatedAndSortedArray = translatedNamesArray.sort(
-        (a: any, b: any) => a.challenge.name.localeCompare(b.challenge.name)
+      const translatedAndSortedArray = translatedNamesArray.sort((a: any, b: any) =>
+        a.challenge.name.localeCompare(b.challenge.name)
       )
 
       setTotalIP(totalIP)
@@ -136,10 +154,10 @@ export default function Challenges({ onLogout }) {
   }
 
   const handleSortOption = (sorting_method: string): void => {
-    let sortedChallenges: any[] = [];
+    let sortedChallenges: any[] = []
     let challengesToSort = challenges.filter((ch) => {
-      const name = (ch.challenge.name).toLowerCase()
-      const description = (ch.challenge.description).toLowerCase()
+      const name = ch.challenge.name.toLowerCase()
+      const description = ch.challenge.description.toLowerCase()
 
       const isNameMatch = name.toLowerCase().includes(searchTerm.toLowerCase())
       const isDescriptionMatch = description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -147,13 +165,12 @@ export default function Challenges({ onLogout }) {
       const isStatusMatch = selectedStatuses.includes(ch.status)
 
       const areTagsMatch = Object.keys(selectedTags).every((key) => {
-        return selectedTags[key].every((tag) =>{
-          if(tag === "Hard"){
-            return ch.challenge.tags.includes(tag) && !ch.challenge.tags.includes("Very")
+        return selectedTags[key].every((tag) => {
+          if (tag === 'Hard') {
+            return ch.challenge.tags.includes(tag) && !ch.challenge.tags.includes('Very')
           }
-          return ch.challenge.tags.includes(tag);
-
-        } )
+          return ch.challenge.tags.includes(tag)
+        })
       })
 
       let isPinned = true
@@ -164,30 +181,29 @@ export default function Challenges({ onLogout }) {
       return (isNameMatch || isDescriptionMatch) && isStatusMatch && areTagsMatch && isPinned
     })
 
-
-    if(sorting_method === "A-Z"){
-      sortedChallenges = challengesToSort.sort(
-        (a: any, b: any) => a.challenge.name.localeCompare(b.challenge.name)
+    if (sorting_method === 'A-Z') {
+      sortedChallenges = challengesToSort.sort((a: any, b: any) =>
+        a.challenge.name.localeCompare(b.challenge.name)
       )
     }
-    if(sorting_method === "Z-A"){
-      sortedChallenges = challengesToSort.sort(
-        (a: any, b: any) => b.challenge.name.localeCompare(a.challenge.name)
+    if (sorting_method === 'Z-A') {
+      sortedChallenges = challengesToSort.sort((a: any, b: any) =>
+        b.challenge.name.localeCompare(a.challenge.name)
       )
     }
-    if(sorting_method === "PercHigh"){
+    if (sorting_method === 'PercHigh') {
       sortedChallenges = challengesToSort.sort(
         (a: any, b: any) => b.userProgressionPerc - a.userProgressionPerc
       )
     }
-    if(sorting_method === "PercLow"){
+    if (sorting_method === 'PercLow') {
       sortedChallenges = challengesToSort.sort(
         (a: any, b: any) => a.userProgressionPerc - b.userProgressionPerc
       )
     }
 
-    setSortMethod(sorting_method);
-    setFilteredChallenges(sortedChallenges);
+    setSortMethod(sorting_method)
+    setFilteredChallenges(sortedChallenges)
   }
 
   const togglePinnedChallenge = (challengeId: string): void => {
@@ -258,8 +274,8 @@ export default function Challenges({ onLogout }) {
         totalIP={totalIP}
       />
       {challengesFilters.element}
-      {loadingModalVisible === false &&
-      <ChallengesGrid
+      {loadingModalVisible === false && (
+        /*<ChallengesGrid
         key={challengeKey}
         challenges={filteredChallenges}
         openModal={handleOpenModal}
@@ -267,7 +283,18 @@ export default function Challenges({ onLogout }) {
         pinnedChallenges={pinnedChallenges}
         getChallengesById={getChallengesByIds}
         language={language}
-      />}
+      />*/
+        <div style={{ overflowY: 'scroll' }}>
+          {CustomTagFilters.Heist.map((heist) => (
+            <ChallengeList
+              key={heist.name}
+              challenges={filteredChallenges}
+              type="heist"
+              challengeName={heist.name}
+            />
+          ))}
+        </div>
+      )}
       <ModalWrapper open={open} handleClose={handleCloseModal} modalContent={modalContent} />
     </Container>
   )
