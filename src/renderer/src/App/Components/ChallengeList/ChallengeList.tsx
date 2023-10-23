@@ -75,12 +75,13 @@ export default function ChallengeList({ challenges, type, challengeName }): Reac
         </ListItemButton>
 
         <ListItem>
-          <Collapse in={open} timeout="auto" unmountOnExit style={{width: "100%"}}>
-            {(
-              [
-                ['Stealth', handleCollapseStealth, openStealth],
-                ['Loud', handleCollapseLoud, openLoud]
-              ] as [string, MouseEventHandler, boolean][]
+          <Collapse in={open} timeout="auto" unmountOnExit style={{ width: '100%' }}>
+            {(challengeName == 'Road Rage' // Road Rage only has loud challenges
+              ? ([['Loud', handleCollapseLoud, openLoud]] as [string, MouseEventHandler, boolean][])
+              : ([
+                  ['Stealth', handleCollapseStealth, openStealth],
+                  ['Loud', handleCollapseLoud, openLoud]
+                ] as [string, MouseEventHandler, boolean][])
             ).map(([tactic, handler, isOpen]) => (
               <>
                 <ListItemButton
@@ -130,7 +131,7 @@ export default function ChallengeList({ challenges, type, challengeName }): Reac
                           c.progress.objective.stats[0].currentValue >=
                           c.progress.objective.stats[0].targetValue
                         }
-                        style={{ padding: 0, cursor: 'default', pointerEvents: "none" }}
+                        style={{ padding: 0, cursor: 'default', pointerEvents: 'none' }}
                       />
                       <span style={{ marginLeft: '1rem' }}>
                         {c.challenge.name?.replace(RegExp(`${challengeName}: `, 'i'), '')}
